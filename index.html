@@ -925,12 +925,28 @@ async function logout(){
 }
 
 async function loadProgressFromCloud(){
+  const status=document.getElementById('syncStatus');
   const{data,error}=await sb.from('progress').select('data').eq('user_id',currentUser.id).maybeSingle();
-  if(!error&&data&&data.data){checkedAyahs=data.data;}
-  else{
-    // Aucune donnée cloud encore : on envoie la version locale (si elle existe) pour amorcer
-    await sb.from('progress').upsert({user_id:currentUser.id,data:checkedAyahs,updated_at:new Date().toISOString()});
+  if(error){
+    console.error('Erreur chargement progression:',error);
+    if(status)status.textContent='⚠️ Erreur chargement : '+error.message;
+    return;
   }
+  if(data&&data.data){checkedAyahs=data.data;}
+  else{
+    // Aucune donnée cloud encore : on crée la ligne
+    const{error:upErr}=await sb.from('progress').upsert({user_id:currentUser.id,data:checkedAyahs,updated_at:new Date().toISOString()});
+    if(upErr){console.error('Erreur création ligne progression:',upErr);if(status)status.textContent='⚠️ Erreur init : '+upErr.message;}
+  }
+}
+
+async function flushSaveNow(){
+  if(!currentUser)return;
+  clearTimeout(syncTimeout);
+  const{error}=await sb.from('progress').upsert({user_id:currentUser.id,data:checkedAyahs,updated_at:new Date().toISOString()});
+  const status=document.getElementById('syncStatus');
+  if(status)status.textContent=error?('⚠️ Erreur de synchro : '+error.message):'✓ Synchronisé';
+  if(error)console.error('Erreur sauvegarde progression:',error);
 }
 
 function saveProgressToCloud(){
@@ -938,11 +954,12 @@ function saveProgressToCloud(){
   const status=document.getElementById('syncStatus');
   if(status)status.textContent='Enregistrement...';
   clearTimeout(syncTimeout);
-  syncTimeout=setTimeout(async()=>{
-    const{error}=await sb.from('progress').upsert({user_id:currentUser.id,data:checkedAyahs,updated_at:new Date().toISOString()});
-    if(status)status.textContent=error?'⚠️ Erreur de synchro':'✓ Synchronisé';
-  },800);
+  syncTimeout=setTimeout(flushSaveNow,300);
 }
+
+// Sauvegarde forcée si l'utilisateur change d'onglet ou ferme la page
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSaveNow();});
+window.addEventListener('pagehide',()=>{flushSaveNow();});
 
 async function startApp(user){
   currentUser=user;
