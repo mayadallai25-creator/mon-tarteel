@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarteel — Académie Islamique</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#B8860B; --gold-l:#F5E6C0; --gold-ll:#FBF4E4;
+  --deep:#0D1B2A; --deep2:#132238;
+  --teal:#0F6E56; --teal-l:#1A8A6C;
+  --rust:#8B3A1E; --rust-l:#FAECE7;
+  --blue:#185FA5; --blue-l:#E6F1FB;
+  --cream:#FDFBF7; --border:#E4DDD0;
+  --text:#1A1A1A; --muted:#6B7280; --bg2:#F7F3EC;
+  --tj-ghunna:#28A745; --tj-madd:#0066CC; --tj-qalqala:#DC3545;
+  --tj-idgham:#7B2FBE; --tj-ikhfa:#E07B00; --tj-iqlab:#C2185B;
+  --tj-heavy:#7B3F00;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--text);overflow:hidden;height:100vh;}
+
+/* ═══ LAYOUT ═══ */
+.app{display:flex;height:100vh;}
+.sidebar{width:270px;background:var(--deep);display:flex;flex-direction:column;flex-shrink:0;}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+
+/* ═══ SIDEBAR ═══ */
+.sb-brand{padding:1.2rem 1.2rem 1rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-brand h2{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:#fff;font-weight:600;letter-spacing:0.02em;}
+.sb-brand p{font-size:0.68rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em;text-transform:uppercase;margin-top:2px;}
+
+/* Module tabs */
+.mod-tabs{display:flex;flex-direction:column;gap:2px;padding:0.7rem 0.6rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.mod-tab{display:flex;align-items:center;gap:10px;padding:0.6rem 0.8rem;border-radius:8px;cursor:pointer;transition:all 0.2s;border:none;background:none;color:rgba(255,255,255,0.55);font-family:'Jost',sans-serif;font-size:0.82rem;text-align:left;}
+.mod-tab:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.8);}
+.mod-tab.active{color:#fff;}
+.mod-tab .tab-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.mod-tab.active.quran .tab-icon{background:rgba(15,110,86,0.35);}
+.mod-tab.active.sira .tab-icon{background:rgba(24,95,165,0.35);}
+.mod-tab.active.meres .tab-icon{background:rgba(139,58,30,0.35);}
+.mod-tab.quran.active{border-left:3px solid var(--teal);}
+.mod-tab.sira.active{border-left:3px solid var(--blue);}
+.mod-tab.meres.active{border-left:3px solid var(--rust);}
+.tab-label{flex:1;}
+.tab-label .tl-main{display:block;font-weight:500;}
+.tab-label .tl-sub{display:block;font-size:0.65rem;color:rgba(255,255,255,0.3);margin-top:1px;}
+
+/* Sub-nav (for quran: sourates / apprentissage) */
+.sub-nav{display:none;flex-direction:column;gap:2px;padding:0.5rem 0.6rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sub-nav.visible{display:flex;}
+.sub-btn{padding:0.4rem 0.9rem;border-radius:6px;border:none;background:none;color:rgba(255,255,255,0.45);font-family:'Jost',sans-serif;font-size:0.78rem;cursor:pointer;text-align:left;transition:all 0.2s;}
+.sub-btn:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);}
+.sub-btn.active{background:rgba(255,255,255,0.1);color:#fff;}
+
+.sb-search{padding:0.5rem 0.6rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-search input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:0.42rem 0.7rem;color:#fff;font-size:0.78rem;font-family:'Jost',sans-serif;outline:none;}
+.sb-search input::placeholder{color:rgba(255,255,255,0.25);}
+
+.sb-list{flex:1;overflow-y:auto;padding:0.3rem 0;}
+.sb-list::-webkit-scrollbar{width:3px;}
+.sb-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}
+
+.surah-item{display:flex;align-items:center;gap:9px;padding:0.5rem 0.9rem;cursor:pointer;transition:background 0.15s;}
+.surah-item:hover{background:rgba(255,255,255,0.04);}
+.surah-item.active{background:rgba(184,134,11,0.18);}
+.si-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;font-size:0.62rem;color:rgba(255,255,255,0.4);flex-shrink:0;}
+.surah-item.active .si-num{background:var(--gold);color:#fff;}
+.si-info .si-name{font-size:0.8rem;color:rgba(255,255,255,0.8);}
+.si-info .si-meta{font-size:0.65rem;color:rgba(255,255,255,0.3);}
+.si-ar{font-family:'Amiri Quran',serif;font-size:0.9rem;color:var(--gold);margin-left:auto;}
+
+.mere-item{display:flex;align-items:center;gap:10px;padding:0.55rem 0.9rem;cursor:pointer;transition:background 0.15s;}
+.mere-item:hover{background:rgba(255,255,255,0.04);}
+.mere-item.active{background:rgba(139,58,30,0.2);}
+.mi-num{width:24px;height:24px;border-radius:50%;background:rgba(139,58,30,0.25);display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#E07050;flex-shrink:0;}
+.mere-item.active .mi-num{background:var(--rust);color:#fff;}
+.mi-info .mi-name{font-size:0.8rem;color:rgba(255,255,255,0.8);}
+.mi-info .mi-sub{font-size:0.65rem;color:rgba(255,255,255,0.3);}
+
+/* ═══ MAIN HEADER ═══ */
+.main-hdr{background:#fff;border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;min-height:56px;}
+.mh-titles h1{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;line-height:1.2;}
+.mh-titles p{font-size:0.75rem;color:var(--muted);}
+.mh-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.hdr-btn{padding:0.3rem 0.75rem;font-size:0.73rem;border-radius:5px;border:1px solid var(--border);background:none;cursor:pointer;font-family:'Jost',sans-serif;color:var(--text);transition:all 0.15s;}
+.hdr-btn:hover{background:var(--bg2);}
+.hdr-btn.active{background:var(--deep);color:#fff;border-color:var(--deep);}
+
+/* Tajweed legend */
+.tj-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0.4rem 1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;flex-shrink:0;}
+.tj-bar label{font-size:0.68rem;font-weight:600;color:var(--muted);}
+.tj-item{font-size:0.67rem;display:flex;align-items:center;gap:3px;color:var(--text);}
+.tj-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+
+/* ═══ CONTENT ═══ */
+.content{flex:1;overflow-y:auto;}
+.content::-webkit-scrollbar{width:5px;}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* Loading / Error */
+.loading-box{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.spin{display:inline-block;width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:0.8rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.err-box{text-align:center;padding:3rem;color:#dc3545;font-size:0.85rem;}
+
+/* ═══ SURAH GRID ═══ */
+.surah-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px;padding:1.5rem;}
+.sg-card{border:1px solid var(--border);border-radius:10px;padding:1rem;background:#fff;cursor:pointer;transition:all 0.2s;}
+.sg-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.08);}
+.sg-num{font-size:0.65rem;color:var(--muted);}
+.sg-ar{font-family:'Amiri Quran',serif;font-size:1.4rem;color:var(--deep);display:block;text-align:right;line-height:1.6;}
+.sg-fr{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;margin-top:2px;}
+.sg-meta{font-size:0.68rem;color:var(--muted);margin-top:2px;}
+
+/* ═══ QURAN READER ═══ */
+.quran-view{padding:2rem 3rem;max-width:800px;margin:0 auto;}
+.surah-hdr-card{text-align:center;margin-bottom:2rem;padding:1.6rem;background:var(--deep);border-radius:12px;}
+.shc-ar{font-family:'Amiri Quran',serif;font-size:2.3rem;color:var(--gold);display:block;line-height:1.5;}
+.shc-fr{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:rgba(255,255,255,0.7);margin-top:4px;}
+.shc-meta{font-size:0.72rem;color:rgba(255,255,255,0.35);margin-top:5px;letter-spacing:0.05em;}
+.basmala{text-align:center;font-family:'Amiri Quran',serif;font-size:2rem;color:var(--deep);margin-bottom:2rem;line-height:2;}
+.ayah-block{margin-bottom:1.8rem;padding-bottom:1.8rem;border-bottom:1px solid var(--border);}
+.ayah-arabic{font-family:'Amiri Quran',serif;font-size:1.7rem;line-height:2.5;direction:rtl;text-align:right;margin-bottom:0.8rem;}
+.ayah-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--deep);color:var(--gold);font-size:0.65rem;margin:0 3px;font-family:'Jost',sans-serif;vertical-align:middle;}
+.ayah-trans{font-size:0.88rem;color:#444;line-height:1.7;font-style:italic;padding-right:1rem;border-right:3px solid var(--gold-l);}
+/* Tajweed classes */
+.tj-q{color:var(--tj-qalqala);}
+.tj-m{color:var(--tj-madd);}
+.tj-g{color:var(--tj-ghunna);}
+.tj-i{color:var(--tj-idgham);}
+.tj-k{color:var(--tj-ikhfa);}
+.tj-iq{color:var(--tj-iqlab);}
+.tj-h{color:var(--tj-heavy);}
+
+/* ═══ LEARNING VIEW ═══ */
+.learn-view{padding:1.5rem;}
+.lv-top{margin-bottom:1.5rem;}
+.lv-top h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;}
+.lv-top p{font-size:0.8rem;color:var(--muted);margin-top:3px;}
+.prog-wrap{background:var(--border);border-radius:10px;height:8px;margin:0.8rem 0 0.3rem;}
+.prog-fill{height:8px;background:linear-gradient(90deg,var(--teal),#28A745);border-radius:10px;transition:width 0.4s;}
+.prog-txt{font-size:0.78rem;color:var(--muted);}
+.juz-block{margin-bottom:14px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.juz-hdr{padding:0.65rem 1rem;background:var(--deep);color:#fff;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.juz-hdr-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;}
+.juz-hdr-prog{font-size:0.7rem;color:rgba(255,255,255,0.45);}
+.juz-body{display:none;}
+.juz-body.open{display:block;}
+.ls-group{border-bottom:1px solid var(--border);}
+.ls-group:last-child{border-bottom:none;}
+.ls-head{padding:0.55rem 1rem;background:var(--bg2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.ls-head-name{font-size:0.8rem;font-weight:500;}
+.ls-head-ar{font-family:'Amiri Quran',serif;font-size:0.95rem;color:var(--gold);margin-left:6px;}
+.ls-head-cnt{font-size:0.7rem;color:var(--teal);}
+.ls-ayahs{display:none;padding:0.4rem 1rem;}
+.ls-ayahs.open{display:block;}
+.ac-row{display:flex;align-items:flex-start;gap:10px;padding:0.55rem 0;border-bottom:1px solid #F0EBE0;}
+.ac-row:last-child{border-bottom:none;}
+.ac-row.done{background:#F0FAF5;border-radius:5px;padding-left:6px;}
+.ac-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);flex-shrink:0;margin-top:4px;cursor:pointer;}
+.ac-row label{flex:1;cursor:pointer;}
+.ac-num{font-size:0.68rem;color:var(--muted);display:block;margin-bottom:2px;}
+.ac-ar{font-family:'Amiri Quran',serif;font-size:1.15rem;direction:rtl;text-align:right;line-height:1.9;display:block;}
+.ac-tr{font-size:0.77rem;color:#555;font-style:italic;line-height:1.5;display:block;margin-top:2px;}
+.ac-row.done .ac-ar{opacity:0.4;}
+
+/* ═══ SIRA VIEW ═══ */
+.sira-view{padding:1.5rem 2rem;max-width:860px;margin:0 auto;}
+.sira-intro{text-align:center;padding:2rem;background:var(--deep);border-radius:12px;margin-bottom:2rem;}
+.sira-intro .si-ar{font-family:'Amiri Quran',serif;font-size:1.8rem;color:var(--gold);display:block;margin-bottom:8px;}
+.sira-intro h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:#fff;font-weight:400;}
+.sira-intro p{font-size:0.82rem;color:rgba(255,255,255,0.45);margin-top:6px;}
+.sira-chapters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem;}
+.sira-ch{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;background:#fff;cursor:pointer;transition:all 0.2s;display:flex;gap:12px;align-items:flex-start;}
+.sira-ch:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.07);}
+.sira-ch.active{border-color:var(--blue);background:var(--blue-l);}
+.sch-num{width:32px;height:32px;border-radius:8px;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:600;color:var(--blue);flex-shrink:0;}
+.sira-ch.active .sch-num{background:var(--blue);color:#fff;}
+.sch-body h4{font-size:0.88rem;font-weight:600;margin-bottom:3px;}
+.sch-body p{font-size:0.75rem;color:var(--muted);line-height:1.4;}
+.sira-detail{background:#fff;border:1px solid var(--border);border-radius:12px;padding:2rem;}
+.sira-detail h3{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;margin-bottom:0.5rem;color:var(--blue);}
+.sira-detail .sd-period{font-size:0.75rem;color:var(--muted);margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.sira-detail .sd-content{font-size:0.9rem;line-height:1.9;color:#333;}
+.sira-detail .sd-content p{margin-bottom:1rem;}
+.sira-detail .sd-content h4{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;margin:1.2rem 0 0.4rem;color:var(--deep);}
+.sira-detail .sd-content .hadith{background:var(--gold-ll);border-left:3px solid var(--gold);padding:0.8rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-style:italic;font-size:0.85rem;}
+.sd-timeline{display:flex;flex-direction:column;gap:0;margin:1.2rem 0;}
+.tl-item{display:flex;gap:14px;padding-bottom:1.2rem;position:relative;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item::before{content:'';position:absolute;left:10px;top:22px;bottom:0;width:1px;background:var(--border);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:21px;height:21px;border-radius:50%;background:var(--blue-l);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.tl-dot span{font-size:0.55rem;font-weight:600;color:var(--blue);}
+.tl-body h5{font-size:0.82rem;font-weight:600;margin-bottom:2px;}
+.tl-body p{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+
+/* ═══ MERES VIEW ═══ */
+.meres-grid-view{padding:1.5rem;}
+.mg-intro{text-align:center;padding:1.5rem;background:var(--deep);border-radius:12px;margin-bottom:1.5rem;}
+.mg-intro .mi-ar{font-family:'Amiri Quran',serif;font-size:1.8rem;color:var(--gold);display:block;margin-bottom:6px;}
+.mg-intro h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:#fff;font-weight:400;}
+.mg-intro p{font-size:0.8rem;color:rgba(255,255,255,0.4);margin-top:4px;}
+.meres-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+.mere-card{border:1px solid var(--border);border-radius:10px;padding:1.1rem;background:#fff;cursor:pointer;transition:all 0.2s;text-align:center;}
+.mere-card:hover{border-color:var(--rust);transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.08);}
+.mere-card.active{border-color:var(--rust);background:var(--rust-l);}
+.mc-num{width:30px;height:30px;border-radius:50%;background:var(--rust-l);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:600;color:var(--rust);margin:0 auto 8px;}
+.mere-card.active .mc-num{background:var(--rust);color:#fff;}
+.mc-ar{font-family:'Amiri Quran',serif;font-size:1.3rem;color:var(--deep);display:block;margin-bottom:3px;}
+.mc-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;margin-bottom:2px;}
+.mc-ep{font-size:0.7rem;color:var(--muted);}
+
+.mere-detail{background:#fff;border:1px solid var(--border);border-radius:12px;padding:2rem;margin-top:1.5rem;}
+.mere-detail-hdr{display:flex;align-items:center;gap:1.2rem;margin-bottom:1.2rem;padding-bottom:1.2rem;border-bottom:1px solid var(--border);}
+.md-avatar{width:56px;height:56px;border-radius:50%;background:var(--rust-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.md-avatar span{font-family:'Amiri Quran',serif;font-size:1.5rem;color:var(--rust);}
+.md-titles h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--rust);}
+.md-titles .md-ar{font-family:'Amiri Quran',serif;font-size:1.1rem;color:var(--muted);display:block;}
+.md-titles .md-ep{font-size:0.75rem;color:var(--muted);}
+.mere-detail-body{font-size:0.88rem;line-height:1.9;color:#333;}
+.mere-detail-body p{margin-bottom:0.9rem;}
+.mere-detail-body h4{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;margin:1.2rem 0 0.4rem;color:var(--deep);}
+.mere-detail-body .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0.8rem 0;}
+.info-cell{background:var(--bg2);border-radius:7px;padding:0.6rem 0.8rem;}
+.info-cell .ic-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);display:block;margin-bottom:2px;}
+.info-cell .ic-val{font-size:0.82rem;font-weight:500;}
+.mere-detail-body .hadith-box{background:var(--rust-l);border-left:3px solid var(--rust);padding:0.8rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;font-style:italic;font-size:0.84rem;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar">
+  <div class="sb-brand">
+    <h2>☪ Tarteel Academy</h2>
+    <p>Tableau de bord islamique</p>
+  </div>
+
+  <div class="mod-tabs">
+    <button class="mod-tab quran active" onclick="switchModule('quran')">
+      <div class="tab-icon">📖</div>
+      <span class="tab-label">
+        <span class="tl-main">Le Saint Coran</span>
+        <span class="tl-sub">القرآن الكريم</span>
+      </span>
+    </button>
+    <button class="mod-tab sira" onclick="switchModule('sira')">
+      <div class="tab-icon">ﷺ</div>
+      <span class="tab-label">
+        <span class="tl-main">La Sira</span>
+        <span class="tl-sub">السيرة النبوية</span>
+      </span>
+    </button>
+    <button class="mod-tab meres" onclick="switchModule('meres')">
+      <div class="tab-icon">✦</div>
+      <span class="tab-label">
+        <span class="tl-main">Mères des croyants</span>
+        <span class="tl-sub">أمهات المؤمنين</span>
+      </span>
+    </button>
+  </div>
+
+  <!-- Quran sub-nav -->
+  <div class="sub-nav visible" id="quran-subnav">
+    <button class="sub-btn active" id="sub-sourates" onclick="setQuranView('sourates')">📋 Les Sourates</button>
+    <button class="sub-btn" id="sub-learn" onclick="setQuranView('learn')">✅ Apprentissage</button>
+  </div>
+
+  <div class="sb-search" id="sb-search-box">
+    <input type="text" id="searchInput" placeholder="Rechercher..." oninput="filterList(this.value)">
+  </div>
+
+  <div class="sb-list" id="sbList"></div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="main-hdr">
+    <div class="mh-titles">
+      <h1 id="mhTitle">القرآن الكريم</h1>
+      <p id="mhMeta">Sélectionnez une section</p>
+    </div>
+    <div class="mh-right" id="mhRight"></div>
+  </div>
+  <div class="tj-bar" id="tjBar">
+    <label>Tajwid :</label>
+    <span class="tj-item"><span class="tj-dot" style="background:var(--tj-qalqala)"></span>Qalqala</span>
+    <span class="tj-item"><span class="tj-dot" style="background:var(--tj-madd)"></span>Madd</span>
+    <span class="tj-item"><span class="tj-dot" style="background:var(--tj-ghunna)"></span>Ghunna</span>
+    <span class="tj-item"><span class="tj-dot" style="background:var(--tj-idgham)"></span>Idgham</span>
+    <span class="tj-item"><span class="tj-dot" style="background:var(--tj-ikhfa)"></span>Ikhfa</span>
+    <span class="tj-item"><span class="tj-dot" style="background:var(--tj-iqlab)"></span>Iqlab</span>
+    <span class="tj-item"><span class="tj-dot" style="background:var(--tj-heavy)"></span>Tafkhim</span>
+  </div>
+  <div class="content" id="mainContent">
+    <div class="loading-box"><div class="spin"></div><br>Chargement...</div>
+  </div>
+</div>
+</div>
+
+<script>
+const API='https://api.quran.com/api/v4';
+const TRANS_ID=136;
+let currentModule='quran';
+let quranView='sourates';
+let currentSurah=null;
+let currentMere=null;
+let currentSiraChap=null;
+let checkedAyahs=JSON.parse(localStorage.getItem('tarteel_v2')||'{}');
+let openJuz={30:true};
+let openLearnSurah={};
+
+const SURAHS=[
+  [1,"Al-Fatiha","الفاتحة",7,"Mecquoise"],[2,"Al-Baqara","البقرة",286,"Médinoise"],[3,"Al-Imran","آل عمران",200,"Médinoise"],
+  [4,"An-Nisa","النساء",176,"Médinoise"],[5,"Al-Ma'ida","المائدة",120,"Médinoise"],[6,"Al-An'am","الأنعام",165,"Mecquoise"],
+  [7,"Al-A'raf","الأعراف",206,"Mecquoise"],[8,"Al-Anfal","الأنفال",75,"Médinoise"],[9,"At-Tawba","التوبة",129,"Médinoise"],
+  [10,"Yunus","يونس",109,"Mecquoise"],[11,"Hud","هود",123,"Mecquoise"],[12,"Yusuf","يوسف",111,"Mecquoise"],
+  [13,"Ar-Ra'd","الرعد",43,"Médinoise"],[14,"Ibrahim","إبراهيم",52,"Mecquoise"],[15,"Al-Hijr","الحجر",99,"Mecquoise"],
+  [16,"An-Nahl","النحل",128,"Mecquoise"],[17,"Al-Isra","الإسراء",111,"Mecquoise"],[18,"Al-Kahf","الكهف",110,"Mecquoise"],
+  [19,"Maryam","مريم",98,"Mecquoise"],[20,"Ta-Ha","طه",135,"Mecquoise"],[21,"Al-Anbiya","الأنبياء",112,"Mecquoise"],
+  [22,"Al-Hajj","الحج",78,"Médinoise"],[23,"Al-Mu'minun","المؤمنون",118,"Mecquoise"],[24,"An-Nur","النور",64,"Médinoise"],
+  [25,"Al-Furqan","الفرقان",77,"Mecquoise"],[26,"Ash-Shu'ara","الشعراء",227,"Mecquoise"],[27,"An-Naml","النمل",93,"Mecquoise"],
+  [28,"Al-Qasas","القصص",88,"Mecquoise"],[29,"Al-Ankabut","العنكبوت",69,"Mecquoise"],[30,"Ar-Rum","الروم",60,"Mecquoise"],
+  [31,"Luqman","لقمان",34,"Mecquoise"],[32,"As-Sajda","السجدة",30,"Mecquoise"],[33,"Al-Ahzab","الأحزاب",73,"Médinoise"],
+  [34,"Saba","سبأ",54,"Mecquoise"],[35,"Fatir","فاطر",45,"Mecquoise"],[36,"Ya-Sin","يس",83,"Mecquoise"],
+  [37,"As-Saffat","الصافات",182,"Mecquoise"],[38,"Sad","ص",88,"Mecquoise"],[39,"Az-Zumar","الزمر",75,"Mecquoise"],
+  [40,"Ghafir","غافر",85,"Mecquoise"],[41,"Fussilat","فصلت",54,"Mecquoise"],[42,"Ash-Shura","الشورى",53,"Mecquoise"],
+  [43,"Az-Zukhruf","الزخرف",89,"Mecquoise"],[44,"Ad-Dukhan","الدخان",59,"Mecquoise"],[45,"Al-Jathiya","الجاثية",37,"Mecquoise"],
+  [46,"Al-Ahqaf","الأحقاف",35,"Mecquoise"],[47,"Muhammad","محمد",38,"Médinoise"],[48,"Al-Fath","الفتح",29,"Médinoise"],
+  [49,"Al-Hujurat","الحجرات",18,"Médinoise"],[50,"Qaf","ق",45,"Mecquoise"],[51,"Adh-Dhariyat","الذاريات",60,"Mecquoise"],
+  [52,"At-Tur","الطور",49,"Mecquoise"],[53,"An-Najm","النجم",62,"Mecquoise"],[54,"Al-Qamar","القمر",55,"Mecquoise"],
+  [55,"Ar-Rahman","الرحمن",78,"Médinoise"],[56,"Al-Waqi'a","الواقعة",96,"Mecquoise"],[57,"Al-Hadid","الحديد",29,"Médinoise"],
+  [58,"Al-Mujadila","المجادلة",22,"Médinoise"],[59,"Al-Hashr","الحشر",24,"Médinoise"],[60,"Al-Mumtahana","الممتحنة",13,"Médinoise"],
+  [61,"As-Saff","الصف",14,"Médinoise"],[62,"Al-Jumu'a","الجمعة",11,"Médinoise"],[63,"Al-Munafiqun","المنافقون",11,"Médinoise"],
+  [64,"At-Taghabun","التغابun",18,"Médinoise"],[65,"At-Talaq","الطلاق",12,"Médinoise"],[66,"At-Tahrim","التحريم",12,"Médinoise"],
+  [67,"Al-Mulk","الملك",30,"Mecquoise"],[68,"Al-Qalam","القلم",52,"Mecquoise"],[69,"Al-Haqqa","الحاقة",52,"Mecquoise"],
+  [70,"Al-Ma'arij","المعارج",44,"Mecquoise"],[71,"Nuh","نوح",28,"Mecquoise"],[72,"Al-Jinn","الجن",28,"Mecquoise"],
+  [73,"Al-Muzzammil","المزمل",20,"Mecquoise"],[74,"Al-Muddaththir","المدثر",56,"Mecquoise"],[75,"Al-Qiyama","القيامة",40,"Mecquoise"],
+  [76,"Al-Insan","الإنسان",31,"Médinoise"],[77,"Al-Mursalat","المرسلات",50,"Mecquoise"],[78,"An-Naba","النبأ",40,"Mecquoise"],
+  [79,"An-Nazi'at","النازعات",46,"Mecquoise"],[80,"Abasa","عبس",42,"Mecquoise"],[81,"At-Takwir","التكوير",29,"Mecquoise"],
+  [82,"Al-Infitar","الانفطار",19,"Mecquoise"],[83,"Al-Mutaffifin","المطففين",36,"Mecquoise"],[84,"Al-Inshiqaq","الانشقاق",25,"Mecquoise"],
+  [85,"Al-Buruj","البروج",22,"Mecquoise"],[86,"At-Tariq","الطارق",17,"Mecquoise"],[87,"Al-A'la","الأعلى",19,"Mecquoise"],
+  [88,"Al-Ghashiya","الغاشية",26,"Mecquoise"],[89,"Al-Fajr","الفجر",30,"Mecquoise"],[90,"Al-Balad","البلد",20,"Mecquoise"],
+  [91,"Ash-Shams","الشمس",15,"Mecquoise"],[92,"Al-Layl","الليل",21,"Mecquoise"],[93,"Ad-Duha","الضحى",11,"Mecquoise"],
+  [94,"Ash-Sharh","الشرح",8,"Mecquoise"],[95,"At-Tin","التين",8,"Mecquoise"],[96,"Al-Alaq","العلق",19,"Mecquoise"],
+  [97,"Al-Qadr","القدر",5,"Mecquoise"],[98,"Al-Bayyina","البينة",8,"Médinoise"],[99,"Az-Zalzala","الزلزلة",8,"Médinoise"],
+  [100,"Al-Adiyat","العاديات",11,"Mecquoise"],[101,"Al-Qari'a","القارعة",11,"Mecquoise"],[102,"At-Takathur","التكاثر",8,"Mecquoise"],
+  [103,"Al-Asr","العصر",3,"Mecquoise"],[104,"Al-Humaza","الهمزة",9,"Mecquoise"],[105,"Al-Fil","الفيل",5,"Mecquoise"],
+  [106,"Quraysh","قريش",4,"Mecquoise"],[107,"Al-Ma'un","الماعون",7,"Mecquoise"],[108,"Al-Kawthar","الكوثر",3,"Mecquoise"],
+  [109,"Al-Kafirun","الكافرون",6,"Mecquoise"],[110,"An-Nasr","النصر",3,"Médinoise"],[111,"Al-Masad","المسد",5,"Mecquoise"],
+  [112,"Al-Ikhlas","الإخلاص",4,"Mecquoise"],[113,"Al-Falaq","الفلق",5,"Mecquoise"],[114,"An-Nas","الناس",6,"Mecquoise"]
+];
+
+const LEARN_SURAHS_BY_JUZ={
+  26:[46,47,48,49,50,51],
+  27:[52,53,54,55,56,57],
+  28:[58,59,60,61,62,63,64,65,66],
+  29:[67,68,69,70,71,72,73,74,75,76,77],
+  30:[78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114]
+};
+
+const MERES=[
+  {n:1,ar:"خديجة بنت خويلد",fr:"Khadija bint Khuwaylid",ep:"1ère épouse",init:"خد",
+   birth:"env. 555 ap. J.-C., La Mecque",death:"619 ap. J.-C. (Année du chagrin)",tribe:"Quraysh (clan Asad)",
+   resume:"Première épouse du Prophète ﷺ et première convertie à l'Islam. Femme d'affaires prospère, elle fut un soutien indéfectible.",
+   sections:[
+    {title:"Avant l'Islam",text:"Khadija était une femme d'affaires respectée à La Mecque, connue pour son intégrité et sa sagesse. Deux fois veuve, elle gérait elle-même ses caravanes commerciales. C'est elle qui proposa le mariage au Prophète Muhammad ﷺ, alors âgé de 25 ans, après avoir été impressionnée par son honnêteté lors d'une expédition commerciale. Leur différence d'âge (elle avait environ 40 ans, lui 25) n'était pas un obstacle car elle le connaissait bien."},
+    {title:"Première convertie",text:"Lorsque le Prophète ﷺ revint de la grotte de Hira tremblant et bouleversé après la première révélation, c'est Khadija qui le réconforta : « Par Allah, Il ne t'humiliera jamais. Tu maintiens les liens de parenté, tu portes les fardeaux des autres, tu aides les démunis... ». Elle fut la première personne à accepter l'Islam, avant même Abu Bakr et Ali."},
+    {title:"Soutien pendant les persécutions",text:"Pendant les premières années de l'Islam, Khadija apporta toute sa fortune au service de la nouvelle religion. Lorsque les Qurayshites boycottèrent les musulmans pendant trois ans, elle partagea toutes les privations avec le Prophète ﷺ. Sa mort, en l'an 619, plongea le Prophète dans une tristesse profonde — cette année fut appelée « l'Année du Chagrin »."},
+    {title:"Sa place dans l'Islam",text:"Le Prophète ﷺ lui voua un amour et une reconnaissance éternels. Il dit : « Elle m'a cru quand tout le monde m'avait traité de menteur, elle m'a soutenu de sa fortune quand tout le monde me privait... » Allah lui envoya Son salaam par l'intermédiaire de Jibreel et lui annonça une demeure au Paradis en perles creuses."}
+   ]
+  },
+  {n:2,ar:"سودة بنت زمعة",fr:"Sawda bint Zam'a",ep:"2ème épouse",init:"سو",
+   birth:"env. 580, La Mecque",death:"env. 674, Médine",tribe:"Quraysh (clan Amir)",
+   resume:"Deuxième épouse du Prophète ﷺ, elle avait migré en Abyssinie avec son premier mari. Femme généreuse et joyeuse.",
+   sections:[
+    {title:"Sa vie avant le mariage",text:"Sawda avait épousé en premières noces As-Sakran ibn Amr, avec qui elle migra en Abyssinie pour fuir les persécutions des Qurayshites. À leur retour à La Mecque, son mari décéda, la laissant veuve. Elle était parmi les premières à avoir embrassé l'Islam."},
+    {title:"Mariage avec le Prophète ﷺ",text:"Après le décès de Khadija, Khawla bint Hakim proposa à Sawda de se marier avec le Prophète ﷺ. Elle accepta avec joie. Ce mariage eut lieu avant celui avec Aïcha. Le Prophète appréciait son sens de l'humour et sa bonté."},
+    {title:"Sa générosité",text:"Sawda était connue pour son caractère généreux et aimable. Elle offrit sa nuit (son tour) à Aïcha par amour pour le Prophète ﷺ, souhaitant que ce soit Aïcha qu'il retrouve. Elle vécut longtemps à Médine après la mort du Prophète ﷺ."}
+   ]
+  },
+  {n:3,ar:"عائشة بنت أبي بكر",fr:"Aïcha bint Abi Bakr",ep:"3ème épouse",init:"عا",
+   birth:"env. 613, La Mecque",death:"678, Médine",tribe:"Quraysh (clan Taym)",
+   resume:"La bien-aimée du Prophète ﷺ. Grande savante de l'Islam, elle transmit des milliers de hadiths et fut une référence pour les Compagnons.",
+   sections:[
+    {title:"Jeunesse et mariage",text:"Aïcha est la fille d'Abu Bakr As-Siddiq, le plus proche ami du Prophète ﷺ. Elle se distingua dès son jeune âge par une intelligence et une mémoire exceptionnelles. Son mariage avec le Prophète ﷺ fut révélé en songe et représentait une alliance spirituelle profonde."},
+    {title:"Sa science et son rôle",text:"Aïcha est l'une des plus grandes savantes de l'Islam. Elle transmit environ 2 210 hadiths. Les Compagnons venaient la consulter sur des questions de jurisprudence, de théologie et de pratique religieuse. Le Prophète ﷺ dit : « Prenez la moitié de votre religion de cette Humayra (rougeaude) ». Elle était aussi poète et médecin."},
+    {title:"L'incident de l'Ifk",text:"Lors du retour de l'expédition de Banu Mustaliq, Aïcha fut accusée injustement de manquement à la pudeur. Le Prophète ﷺ fut profondément affecté. Allah révéla sa défense dans le Coran (Sourate An-Nur, verset 11-26), l'innocentant définitivement et condamnant ceux qui avaient propagé ces calomnies."},
+    {title:"Après la mort du Prophète ﷺ",text:"Aïcha vécut encore plusieurs décennies après le décès du Prophète ﷺ, continuant d'enseigner et de transmettre la Sunna. Elle participa à la Bataille du Chameau (Jamal) en 656, un épisode qu'elle regretta par la suite. Elle mourut à Médine et fut enterrée au cimetière Al-Baqi'."}
+   ]
+  },
+  {n:4,ar:"حفصة بنت عمر",fr:"Hafsa bint Umar",ep:"4ème épouse",init:"حف",
+   birth:"env. 605, La Mecque",death:"665, Médine",tribe:"Quraysh (clan Adi)",
+   resume:"Fille d'Omar ibn Al-Khattab. Gardienne du Mushaf original du Coran. Connue pour son assiduité dans le jeûne et la prière.",
+   sections:[
+    {title:"Fille d'Omar",text:"Hafsa est la fille d'Omar ibn Al-Khattab, le deuxième Calife de l'Islam. Elle avait d'abord été mariée à Khunays ibn Hudhafa As-Sahmi, un compagnon qui participa à la bataille de Badr et mourut de ses blessures. Veuve, son père chercha un nouveau mari pour elle."},
+    {title:"Mariage avec le Prophète ﷺ",text:"Omar ibn Al-Khattab proposa sa fille à Abu Bakr et Uthman, qui déclinèrent chacun pour leur propre raison. Le Prophète ﷺ demanda lui-même sa main, ce qui combla Omar de joie. Hafsa était connue pour son caractère fort et sa franchise, similaire à celui de son père."},
+    {title:"Gardienne du Mushaf",text:"Après le décès du Prophète ﷺ, Abu Bakr ordonna la compilation du Coran en un seul recueil. Ce Mushaf original fut confié à Hafsa pour sa conservation. Lorsque Uthman voulut réaliser des copies standardisées, il le récupéra auprès d'elle. Elle est ainsi une gardienne majeure du patrimoine coranique."},
+    {title:"Sa piété",text:"Hafsa était célèbre pour ses longues prières nocturnes et ses nombreux jeûnes. L'ange Jibreel aurait dit au Prophète ﷺ : « Hafsa est une femme qui jeûne beaucoup et prie la nuit, et elle sera ton épouse au Paradis. »"}
+   ]
+  },
+  {n:5,ar:"زينب بنت خزيمة",fr:"Zaynab bint Khuzayma",ep:"5ème épouse",init:"زخ",
+   birth:"env. 595",death:"env. 625, Médine",tribe:"Hawazin (clan Hilal)",
+   resume:"Surnommée « Mère des pauvres » (Umm Al-Masakin) pour sa générosité extraordinaire. Elle vécut peu de temps après son mariage.",
+   sections:[
+    {title:"Umm Al-Masakin",text:"Zaynab bint Khuzayma était connue bien avant l'Islam pour son incroyable générosité envers les pauvres et les nécessiteux. Ce caractère lui valut le surnom d'Umm Al-Masakin — Mère des pauvres — surnom que lui donnèrent les gens de La Mecque en raison de la régularité et de l'ampleur de sa charité."},
+    {title:"Mariage et décès",text:"Elle avait été mariée avant à Ubaydah ibn Al-Harith, qui fut martyrisé à la bataille de Badr. Le Prophète ﷺ l'épousa en l'an 3 de l'Hégire. Malheureusement, elle décéda environ deux ou trois mois après le mariage, devenant ainsi la seule épouse du Prophète à mourir de son vivant après Khadija. Il lui donna une sépulture honorable à Médine."}
+   ]
+  },
+  {n:6,ar:"أم سلمة",fr:"Umm Salama (Hind)",ep:"6ème épouse",init:"أس",
+   birth:"env. 596, La Mecque",death:"env. 680, Médine",tribe:"Quraysh (clan Makhzum)",
+   resume:"Une des femmes les plus sages et les plus pieuses. Veuve d'Abu Salama, elle transmit de nombreux hadiths et conseilla le Prophète ﷺ lors du Traité de Hudaybiyya.",
+   sections:[
+    {title:"Migration et épreuves",text:"Umm Salama (de son vrai nom Hind) fut parmi les premiers musulmans. Elle migra en Abyssinie avec son mari Abu Salama, puis à Médine. Lors de la migration vers Médine, ils furent séparés de force par la famille d'Umm Salama pendant une longue période, une épreuve qui lui brisa le cœur. Elle dit plus tard que ce fut l'une des épreuves les plus douloureuses de sa vie."},
+    {title:"Veuvage et mariage",text:"Abu Salama fut mortellement blessé lors de la bataille d'Uhud. En mourant, il fit une dua pour que son épouse trouve un mari meilleur que lui. Après sa période de deuil, plusieurs Compagnons lui proposèrent le mariage. Le Prophète ﷺ lui-même demanda sa main. Elle hésita d'abord, craignant ses nombreux enfants et son âge, mais finit par accepter."},
+    {title:"La conseillère du Prophète ﷺ",text:"Lors du Traité de Hudaybiyya en 628, après que le Prophète ﷺ eut signé l'accord avec les Qurayshites, les Compagnons étaient tellement abattus qu'ils refusaient d'obéir à l'ordre de se raser la tête et de sacrifier leurs animaux. C'est Umm Salama qui conseilla au Prophète ﷺ d'accomplir ces actes lui-même en premier, sans rien dire. Les Compagnons le suivirent immédiatement."},
+    {title:"Sa science",text:"Umm Salama transmit environ 378 hadiths. Elle vécut jusqu'à un âge très avancé à Médine, continuant d'enseigner aux femmes et aux hommes qui venaient la consulter."}
+   ]
+  },
+  {n:7,ar:"زينب بنت جحش",fr:"Zaynab bint Jahsh",ep:"7ème épouse",init:"زج",
+   birth:"env. 590, La Mecque",death:"641, Médine",tribe:"Quraysh (clan Asad) – cousine du Prophète",
+   resume:"Son mariage avec le Prophète ﷺ fut ordonné directement par Allah dans le Coran. Généreuse et habile artisane, elle consacrait ses revenus aux pauvres.",
+   sections:[
+    {title:"Son mariage ordonné par le Coran",text:"Zaynab bint Jahsh était la cousine du Prophète ﷺ. Elle avait d'abord été mariée à Zayd ibn Haritha, l'affranchi et fils adoptif du Prophète ﷺ. Après leur divorce, Allah ordonna au Prophète ﷺ de l'épouser afin d'abolir la coutume arabe d'interdire le mariage avec la femme divorcée du fils adoptif. Ce mariage est évoqué dans la Sourate Al-Ahzab (verset 37)."},
+    {title:"Sa fierté et sa piété",text:"Zaynab était connue pour son caractère direct et sa fierté d'avoir été mariée par ordre divin. Elle disait aux autres épouses : « Vos familles vous ont mariées au Prophète ﷺ, mais c'est Allah Lui-même qui m'a mariée à lui du haut des sept cieux. »"},
+    {title:"Sa générosité",text:"Zaynab excellait dans le travail manuel — tannage du cuir, couture, tissage. Elle vendait ses productions et donnait intégralement les bénéfices en aumônes. Le Prophète ﷺ dit que parmi ses épouses, celle qui le rejoindrait le plus vite au Paradis serait celle aux bras les plus longs. Les épouses pensaient au sens littéral, mais le Prophète voulait dire la plus généreuse. Ce fut Zaynab, décédée en 641."}
+   ]
+  },
+  {n:8,ar:"جويرية بنت الحارث",fr:"Juwayriyya bint Al-Harith",ep:"8ème épouse",init:"جو",
+   birth:"env. 608",death:"env. 673, Médine",tribe:"Banu Mustaliq",
+   resume:"Fille du chef de la tribu Banu Mustaliq. Son mariage avec le Prophète ﷺ entraîna la libération de cent familles de sa tribu.",
+   sections:[
+    {title:"Captive devenue Mère des croyants",text:"Lors de la bataille de Banu Mustaliq (en 5 ou 6 AH), Juwayriyya, fille du chef de la tribu, fut capturée. Elle échut comme captive à Thabit ibn Qays. Elle vint au Prophète ﷺ pour lui demander de l'aider à payer sa rançon. Le Prophète lui proposa de payer lui-même et de l'épouser. Elle accepta et embrassa l'Islam."},
+    {title:"La libération de cent familles",text:"Lorsque les Compagnons apprirent que Juwayriyya était devenue l'épouse du Prophète ﷺ — donc une Mère des croyants — ils libérèrent tous leurs captifs de Banu Mustaliq, ne voulant pas garder comme esclaves les parents de l'épouse du Prophète. Aïcha dit : « Je ne connais pas de femme qui fut une plus grande bénédiction pour son peuple qu'elle. »"},
+    {title:"Sa dévotion",text:"Juwayriyya était connue pour ses longues dhikrs et ses prières. Le Prophète ﷺ la trouva un matin en train de faire du dhikr et revint en fin de journée pour la trouver encore à la même place. Il lui enseigna une formule de dhikr plus courte mais plus méritoire : SubhanAllah wa bihamdihi, 'adada khalqihi..."}
+   ]
+  },
+  {n:9,ar:"أم حبيبة",fr:"Umm Habiba (Ramlah)",ep:"9ème épouse",init:"أح",
+   birth:"env. 592, La Mecque",death:"env. 665, Médine",tribe:"Quraysh (clan Umayya) – fille d'Abu Sufyan",
+   resume:"Fille d'Abu Sufyan, l'ennemi juré de l'Islam. Elle émigra en Abyssinie où son mari apostasia. Le Prophète ﷺ la demanda en mariage depuis Médine.",
+   sections:[
+    {title:"Une épreuve extraordinaire",text:"Umm Habiba (Ramlah) était la fille d'Abu Sufyan, l'un des chefs des Qurayshites et opposant farouche au Prophète ﷺ. Elle embrassa l'Islam malgré son père et migra avec son mari Ubaydallah ibn Jahsh en Abyssinie. Là, son mari se convertit au christianisme et l'abandonna. Elle se retrouva seule, loin de sa famille, dans un pays étranger, avec une petite fille."},
+    {title:"Demande en mariage depuis Médine",text:"Le Prophète ﷺ envoya un message au Négus (roi d'Abyssinie) pour demander la main d'Umm Habiba. Le Négus organisa la cérémonie de mariage en son palais, en représentant le Prophète ﷺ. La dot fut versée par le Négus lui-même. Umm Habiba pleura de joie car elle n'avait personne pour la représenter et c'est un roi qui joua ce rôle."},
+    {title:"Sa fermeté dans la foi",text:"Lorsque Abu Sufyan, son père, vint à Médine pour renouveler la trêve de Hudaybiyya, il voulut s'asseoir sur le lit du Prophète ﷺ. Umm Habiba le repoussa : « Ce lit appartient au Prophète d'Allah ﷺ, et toi tu es un polythéiste impur. » Cette scène illustre sa force de caractère face aux liens du sang. Abu Sufyan embrassa l'Islam peu après la conquête de La Mecque."}
+   ]
+  },
+  {n:10,ar:"صفية بنت حيي",fr:"Safiyya bint Huyayy",ep:"10ème épouse",init:"صف",
+   birth:"env. 610, Khaybar",death:"env. 670, Médine",tribe:"Banu Nadir (tribu juive)",
+   resume:"Fille d'un chef de la tribu juive de Banu Nadir, descendante du Prophète Aaron (Haroun). Son intelligence et sa dignité la distinguèrent.",
+   sections:[
+    {title:"Origines nobles",text:"Safiyya était la fille de Huyayy ibn Akhtab, chef de Banu Nadir, une tribu juive de Médine, et descendante du Prophète Haroun (Aaron). Elle avait d'abord été mariée à Kinana ibn Al-Rabi. Lors de la bataille de Khaybar (7 AH), sa tribu fut vaincue."},
+    {title:"Son mariage et conversion",text:"Après la bataille de Khaybar, Safiyya fut capturée. Dihya Al-Kalbi la demanda comme part de butin, mais des Compagnons dirent au Prophète ﷺ qu'il serait plus convenable qu'il la prenne lui-même étant donné sa noblesse. Le Prophète lui offrit la liberté et l'Islam. Elle choisit le Prophète ﷺ et l'Islam."},
+    {title:"Sa réponse à Aïcha",text:"Un jour, Aïcha la raillait sur ses origines juives. Safiyya en pleurait. Le Prophète ﷺ la consola en lui disant : « Tu aurais pu répondre : Mon père est Haroun, mon oncle est Musa, et mon mari est Muhammad ﷺ, alors qu'as-tu sur moi ? » Cette réplique illustre la dignité de sa lignée prophétique."},
+    {title:"Sa vie à Médine",text:"Safiyya s'intégra pleinement à la communauté musulmane. Elle transmit des hadiths et fut connue pour sa générosité. Elle libéra une servante de valeur après que des femmes lui eurent dit que la garder porterait malheur — simplement pour éviter de s'attirer la mauvaise fortune d'une esclave malheureuse."}
+   ]
+  },
+  {n:11,ar:"ميمونة بنت الحارث",fr:"Maymuna bint Al-Harith",ep:"11ème épouse",init:"مي",
+   birth:"env. 594, La Mecque",death:"env. 674, Sarif",tribe:"Banu Hilal",
+   resume:"Dernière épouse du Prophète ﷺ. Son mariage eut lieu lors de la Umra de la réconciliation en l'an 7. Elle mourut et fut enterrée à Sarif.",
+   sections:[
+    {title:"La dernière union",text:"Maymuna bint Al-Harith est la dernière épouse que le Prophète ﷺ épousa. Le mariage fut conclu en l'an 7 de l'Hégire, lors de la Umra Al-Qada (Umra de la réconciliation), quand les musulmans purent visiter La Mecque pour la première fois. C'était une femme de grand caractère, pieuse et généreuse."},
+    {title:"Sa générosité",text:"Maymuna était reconnue pour sa générosité. Elle donnait en aumône ce qu'elle pouvait, parfois même des animaux d'élevage. Aïcha dit qu'elle était parmi les plus pieuses et les plus soucieuses des liens familiaux parmi les épouses du Prophète ﷺ."},
+    {title:"Sa mort à Sarif",text:"Maymuna mourut dans le lieu même où son mariage avec le Prophète ﷺ avait été consommé : à Sarif, sur la route entre La Mecque et Médine. Elle avait demandé à y être enterrée. Ibn Abbas, son neveu, dirigea la prière funèbre et la porta jusqu'à sa tombe, lui faisant remarquer qu'elle avait demandé à être enterrée à cet endroit béni."}
+   ]
+  }
+];
+
+const SIRA_CHAPTERS=[
+  {id:1,num:1,title:"Naissance et enfance",period:"env. 570–583 ap. J.-C.",icon:"🌙",
+   summary:"La naissance de Muhammad ﷺ dans l'Année de l'Éléphant, son enfance à La Mecque et chez Halima As-Sa'diyya.",
+   content:`<p>Muhammad ibn Abdallah ﷺ naquit à <strong>La Mecque</strong> dans l'<strong>Année de l'Éléphant</strong> (environ 570 ap. J.-C.), l'année où Abraha tenta de détruire la Ka'ba avec ses éléphants. Son père, <strong>Abdallah ibn Abd Al-Muttalib</strong>, décéda quelques mois avant sa naissance. Il fut confié à la nourrice <strong>Halima As-Sa'diyya</strong>, selon la coutume arabe.</p>
+   <div class="sd-timeline">
+     <div class="tl-item"><div class="tl-dot"><span>570</span></div><div class="tl-body"><h5>Naissance</h5><p>Né dans la tribu de Quraysh, clan Hashim, un lundi du mois de Rabi' Al-Awwal.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>570</span></div><div class="tl-body"><h5>Mort du père</h5><p>Abdallah décède avant ou peu après la naissance du Prophète ﷺ.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>576</span></div><div class="tl-body"><h5>Mort de la mère</h5><p>Amina, sa mère, décède lors d'un voyage de retour d'Al-Abwa. Il a 6 ans.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>578</span></div><div class="tl-body"><h5>Mort du grand-père</h5><p>Abd Al-Muttalib décède. Le Prophète ﷺ est confié à son oncle Abu Talib.</p></div></div>
+   </div>
+   <p>À l'âge de 12 ans, il accompagna son oncle Abu Talib dans un voyage commercial en Syrie. Le moine chrétien <strong>Bahira</strong> reconnut en lui les signes du Prophète annoncé dans les Écritures et conseilla à Abu Talib de le ramener rapidement.</p>`
+  },
+  {id:2,num:2,title:"Jeunesse et Al-Amin",period:"583–610 ap. J.-C.",icon:"⭐",
+   summary:"Sa jeunesse exemplaire, ses voyages commerciaux, le surnom Al-Amin (le digne de confiance), et son mariage avec Khadija.",
+   content:`<p>Muhammad ﷺ grandit sous la protection de son oncle Abu Talib. Il se distingua rapidement par son honnêteté et sa droiture, ce qui lui valut le surnom d'<strong>Al-Amin</strong> — le Digne de Confiance — de la part de ses concitoyens mecquois.</p>
+   <div class="hadith">« Il était le meilleur d'entre vous en termes de morale avant l'Islam, et il l'est encore davantage en Islam. » — Hadith</div>
+   <h4>L'arbitrage de la Pierre Noire</h4>
+   <p>Lors de la reconstruction de la Ka'ba, les tribus de La Mecque se disputaient l'honneur de replacer la Pierre Noire (Al-Hajar Al-Aswad). Elles décidèrent de confier la décision au premier homme à franchir la porte. Ce fut Muhammad ﷺ. Il résolut le conflit avec sagesse : il déposa la Pierre sur un manteau et demanda à un représentant de chaque tribu de le porter, puis il plaça lui-même la Pierre à sa position.</p>
+   <h4>Mariage avec Khadija</h4>
+   <p>Khadija, impressionnée par son intégrité dans la conduite de ses caravanes, lui proposa le mariage. Muhammad ﷺ avait 25 ans, Khadija environ 40. Ce fut une union remplie d'amour et de respect mutuel, qui dura 25 ans jusqu'à la mort de Khadija.`
+  },
+  {id:3,num:3,title:"La révélation",period:"610 ap. J.-C.",icon:"📿",
+   summary:"La première révélation dans la grotte de Hira, l'annonce de la Prophétie et les premières conversions.",
+   content:`<p>En l'an 610 ap. J.-C., alors qu'il avait 40 ans et qu'il avait l'habitude de se retirer dans la <strong>grotte de Hira</strong> sur le mont Nur pour méditer, l'ange <strong>Jibreel (Gabriel)</strong> lui apparut et lui dit :</p>
+   <div class="hadith">اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ — « Lis au nom de ton Seigneur qui a créé » (Al-Alaq : 1)</div>
+   <p>Le Prophète ﷺ rentra chez lui tremblant et bouleversé. Khadija le réconforta et l'emmena voir son cousin <strong>Waraqa ibn Nawfal</strong>, un savant chrétien, qui reconnut immédiatement les signes de la Prophétie et dit que le Prophète ﷺ serait chassé de sa ville et qu'il serait combattu.</p>
+   <div class="sd-timeline">
+     <div class="tl-item"><div class="tl-dot"><span>610</span></div><div class="tl-body"><h5>Première révélation</h5><p>Dans la grotte de Hira, sourate Al-Alaq (versets 1-5).</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>610</span></div><div class="tl-body"><h5>Khadija croit</h5><p>Première personne à accepter l'Islam.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>610</span></div><div class="tl-body"><h5>Ali et Zayd croient</h5><p>Parmi les premiers à embrasser l'Islam.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>613</span></div><div class="tl-body"><h5>Prédication publique</h5><p>Le Prophète ﷺ commence à prêcher ouvertement.</p></div></div>
+   </div>`
+  },
+  {id:4,num:4,title:"Persécutions et Hégire",period:"610–622 ap. J.-C.",icon:"🕊️",
+   summary:"Les persécutions des Qurayshites, la migration en Abyssinie, l'Année du Chagrin, et la grande Hégire vers Médine.",
+   content:`<p>Les premières années de la prédication furent marquées par des <strong>persécutions sévères</strong> des Qurayshites. Les musulmans furent torturés, boycottés et tués. Le Prophète ﷺ ordonna deux migrations vers l'<strong>Abyssinie</strong>, où le roi chrétien Négus (Ashama ibn Abjar) accorda sa protection aux réfugiés musulmans.</p>
+   <h4>L'Année du Chagrin — 619</h4>
+   <p>En l'an 619, le Prophète ﷺ perdit ses deux plus grands soutiens : sa femme Khadija et son oncle Abu Talib. Cette année fut appelée « Am Al-Huzn » — l'Année du Chagrin. Abu Talib, bien que non musulman, avait protégé le Prophète ﷺ contre les Qurayshites pendant 10 ans.</p>
+   <div class="hadith">Le Prophète ﷺ dit à Khadija mourante : « Allah t'a remplacé pour moi par personne de meilleur. »</div>
+   <h4>L'Hégire vers Médine — 622</h4>
+   <p>En 622, après avoir reçu l'invitation des habitants de Yathrib (Médine), le Prophète ﷺ organisa la migration. Il quitta La Mecque avec Abu Bakr, se cachant dans la <strong>grotte de Thawr</strong> pendant trois jours. Allah révéla (9:40) : « Il n'est pas seul : Allah est avec nous. » Ils arrivèrent à Médine le 12 Rabi Al-Awwal. Cette date marque le début du calendrier hégirien.`
+  },
+  {id:5,num:5,title:"Médine et les batailles",period:"622–630 ap. J.-C.",icon:"⚔️",
+   summary:"L'édification de la communauté musulmane à Médine, les grandes batailles de Badr, Uhud et Al-Ahzab.",
+   content:`<p>À Médine, le Prophète ﷺ posa les bases d'un État islamique. Il construisit la <strong>mosquée du Prophète</strong>, établit la <strong>fraternité</strong> entre Ansar et Muhajirin, et rédigea la <strong>Constitution de Médine</strong>, premier document constitutionnel de l'Histoire définissant les droits et devoirs de chaque communauté.</p>
+   <div class="sd-timeline">
+     <div class="tl-item"><div class="tl-dot"><span>624</span></div><div class="tl-body"><h5>Bataille de Badr</h5><p>313 musulmans vainquirent 1000 Qurayshites. Victoire décisive avec aide angélique.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>625</span></div><div class="tl-body"><h5>Bataille d'Uhud</h5><p>Les archers quittent leurs postes, causant une défaite partielle. Le Prophète ﷺ est blessé.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>627</span></div><div class="tl-body"><h5>Bataille du Fossé (Ahzab)</h5><p>Salman Al-Farisi proposa de creuser un fossé. Victoire sans combat direct.</p></div></div>
+     <div class="tl-item"><div class="tl-dot"><span>628</span></div><div class="tl-body"><h5>Traité de Hudaybiyya</h5><p>Traité de paix avec les Qurayshites. Victoire diplomatique majeure.</p></div></div>
+   </div>`
+  },
+  {id:6,num:6,title:"Conquête de La Mecque",period:"630 ap. J.-C.",icon:"🕌",
+   summary:"La conquête pacifique de La Mecque, la purification de la Ka'ba et le pardon accordé aux ennemis.",
+   content:`<p>En l'an 8 de l'Hégire (630 ap. J.-C.), le Prophète ﷺ marcha sur La Mecque avec une armée de <strong>10 000 hommes</strong>. La ville se rendit presque sans combat. Le Prophète ﷺ entra dans la Ka'ba et défit les 360 idoles qui s'y trouvaient, récitant : <em>« La Vérité est venue et le mensonge s'en est allé » (17:81)</em>.</p>
+   <div class="hadith">Puis il se tourna vers les Qurayshites et leur dit : « Que pensez-vous que je vais faire de vous ? » Ils répondirent : « Tu es un frère généreux, fils d'un frère généreux. » Il dit : « Allez, vous êtes libres. »</div>
+   <p>Ce pardon général, accordé même aux pires ennemis de l'Islam comme Abu Sufyan, représente l'un des actes les plus nobles de l'Histoire. La plupart des Mecquois embrassèrent l'Islam ce jour-là, dont Abu Sufyan lui-même.</p>`
+  },
+  {id:7,num:7,title:"Les dernières années",period:"630–632 ap. J.-C.",icon:"🌿",
+   summary:"Le Discours d'Adieu, la maladie et le décès du Prophète ﷺ à l'âge de 63 ans.",
+   content:`<p>Après la conquête de La Mecque, l'Islam se répandit rapidement dans toute la péninsule arabique. Des délégations de tribus venaient embrasser l'Islam. Le Prophète ﷺ accomplit son unique et dernier pèlerinage en l'an 10 AH (632 ap. J.-C.) : <strong>Al-Hajj Al-Wada'</strong> — le Pèlerinage d'Adieu.</p>
+   <h4>Le Discours d'Adieu</h4>
+   <p>Sur le Mont Arafat, devant plus de 100 000 personnes, il prononça son célèbre discours :</p>
+   <div class="hadith">« Ô gens, votre sang et vos biens sont sacrés les uns envers les autres... Un Arabe n'a pas de supériorité sur un non-Arabe, ni un non-Arabe sur un Arabe ; ni un blanc sur un noir, ni un noir sur un blanc — sauf par la piété... »</div>
+   <h4>Son décès</h4>
+   <p>De retour à Médine, il tomba malade. Il mourut le <strong>12 Rabi Al-Awwal, an 11 AH</strong> (8 juin 632 ap. J.-C.), un lundi, dans la chambre de son épouse Aïcha, la tête reposant sur ses genoux. Il fut enterré à l'endroit même où il décéda. Abu Bakr annonça : <em>« Celui qui adorait Muhammad sache qu'il est mort. Celui qui adore Allah sache qu'Allah est vivant et ne meurt pas. »</em></p>`
+  }
+];
+
+// ═══ MODULE SWITCHING ═══
+function switchModule(mod){
+  currentModule=mod;
+  document.querySelectorAll('.mod-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.mod-tab.${mod}`).classList.add('active');
+  document.getElementById('quran-subnav').classList.toggle('visible',mod==='quran');
+  document.getElementById('sb-search-box').style.display=(mod==='quran')?'block':'none';
+  document.getElementById('tjBar').style.display=(mod==='quran'&&quranView==='sourates')?'flex':'none';
+  if(mod==='quran'){renderSurahSidebar();if(quranView==='sourates')showSurahGrid();else renderLearning();}
+  else if(mod==='sira'){renderSiraView();renderSiraSidebar();}
+  else if(mod==='meres'){renderMeresView();renderMeresSidebar();}
+}
+
+function setQuranView(v){
+  quranView=v;
+  document.getElementById('sub-sourates').classList.toggle('active',v==='sourates');
+  document.getElementById('sub-learn').classList.toggle('active',v==='learn');
+  document.getElementById('tjBar').style.display=(v==='sourates')?'flex':'none';
+  if(v==='sourates')showSurahGrid();
+  else renderLearning();
+}
+
+// ═══ SIDEBAR RENDERERS ═══
+function renderSurahSidebar(q=''){
+  const list=document.getElementById('sbList');
+  const filtered=SURAHS.filter(s=>!q||s[1].toLowerCase().includes(q.toLowerCase())||s[2].includes(q)||String(s[0]).includes(q));
+  list.innerHTML=filtered.map(s=>`
+    <div class="surah-item ${currentSurah===s[0]?'active':''}" onclick="loadSurah(${s[0]})">
+      <div class="si-num">${s[0]}</div>
+      <div class="si-info"><div class="si-name">${s[1]}</div><div class="si-meta">${s[4]} · ${s[3]}v.</div></div>
+      <span class="si-ar">${s[2]}</span>
+    </div>`).join('');
+}
+
+function renderSiraSidebar(){
+  const list=document.getElementById('sbList');
+  list.innerHTML=SIRA_CHAPTERS.map(c=>`
+    <div class="surah-item ${currentSiraChap===c.id?'active':''}" onclick="loadSiraChap(${c.id})">
+      <div class="si-num">${c.icon}</div>
+      <div class="si-info"><div class="si-name">${c.title}</div><div class="si-meta">${c.period}</div></div>
+    </div>`).join('');
+}
+
+function renderMeresSidebar(){
+  const list=document.getElementById('sbList');
+  list.innerHTML=MERES.map(m=>`
+    <div class="mere-item ${currentMere===m.n?'active':''}" onclick="loadMere(${m.n})">
+      <div class="mi-num">${m.n}</div>
+      <div class="mi-info"><div class="mi-name">${m.fr.split(' ').slice(0,2).join(' ')}</div><div class="mi-sub">${m.ep}</div></div>
+    </div>`).join('');
+}
+
+function filterList(q){if(currentModule==='quran')renderSurahSidebar(q);}
+
+// ═══ QURAN ═══
+function showSurahGrid(){
+  currentSurah=null;
+  renderSurahSidebar();
+  setHeader('القرآن الكريم','114 Sourates — Cliquez pour lire','');
+  document.getElementById('mainContent').innerHTML=`<div class="surah-grid">${SURAHS.map(s=>`
+    <div class="sg-card" onclick="loadSurah(${s[0]})">
+      <div class="sg-num">Sourate ${s[0]}</div>
+      <span class="sg-ar">${s[2]}</span>
+      <div class="sg-fr">${s[1]}</div>
+      <div class="sg-meta">${s[4]} · ${s[3]} versets</div>
+    </div>`).join('')}</div>`;
+}
+
+async function loadSurah(num){
+  currentSurah=num;
+  quranView='sourates';
+  document.getElementById('sub-sourates').classList.add('active');
+  document.getElementById('sub-learn').classList.remove('active');
+  document.getElementById('tjBar').style.display='flex';
+  renderSurahSidebar();
+  const s=SURAHS[num-1];
+  setHeader(`${s[2]} — ${s[1]}`,`Sourate ${num} · ${s[4]} · ${s[3]} versets`,`<button class="hdr-btn" onclick="showSurahGrid()">← Toutes</button>`);
+  document.getElementById('mainContent').innerHTML=`<div class="loading-box"><div class="spin"></div><br>Chargement...</div>`;
+  try{
+    const[ar,tr]=await Promise.all([
+      fetch(`${API}/quran/verses/uthmani?chapter_number=${num}`).then(r=>r.json()),
+      fetch(`${API}/verses/by_chapter/${num}?translations=${TRANS_ID}&per_page=300&fields=text_uthmani`).then(r=>r.json())
+    ]);
+    const tmap={};(tr.verses||[]).forEach(v=>{tmap[v.verse_key]=(v.translations?.[0]?.text||'').replace(/<[^>]+>/g,'');});
+    let html=`<div class="quran-view"><div class="surah-hdr-card"><span class="shc-ar">${s[2]}</span><div class="shc-fr">${s[1]}</div><div class="shc-meta">Sourate ${num} · ${s[4]} · ${s[3]} versets · Riwaya Hafs</div></div>`;
+    if(num!==1&&num!==9)html+=`<div class="basmala">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</div>`;
+    (ar.verses||[]).forEach((v,i)=>{
+      const key=`${num}:${i+1}`,trans=tmap[key]||'';
+      html+=`<div class="ayah-block"><div class="ayah-arabic">${applyTajweed(v.text_uthmani||'')} <span class="ayah-num">${i+1}</span></div>${trans?`<div class="ayah-trans">${trans}</div>`:''}</div>`;
+    });
+    html+=`</div>`;
+    document.getElementById('mainContent').innerHTML=html;
+    document.getElementById('mainContent').scrollTop=0;
+  }catch(e){document.getElementById('mainContent').innerHTML=`<div class="err-box">Erreur de chargement. Vérifiez votre connexion.<br><small>${e}</small></div>`;}
+}
+
+function applyTajweed(t){
+  t=t.replace(/([قطبجد])/g,'<span class="tj-q">$1</span>');
+  t=t.replace(/(آ|ٓ|ۤ)/g,'<span class="tj-m">$&</span>');
+  t=t.replace(/([نم]ّ)/g,'<span class="tj-g">$1</span>');
+  t=t.replace(/(نْ|ً|ٍ|ٌ)(?!\s*ب)/g,'<span class="tj-i">$&</span>');
+  t=t.replace(/(نْ\s*ب|[ًٌٍ]ب)/g,'<span class="tj-iq">$&</span>');
+  t=t.replace(/([صضظخغ])/g,'<span class="tj-h">$1</span>');
+  return t;
+}
+
+// ═══ LEARNING ═══
+function renderLearning(){
+  currentSurah=null;
+  setHeader("Apprentissage — 5 derniers Juz'",'Cochez les versets mémorisés','');
+  const learnAll=Object.values(LEARN_SURAHS_BY_JUZ).flat();
+  const total=learnAll.reduce((a,sn)=>a+SURAHS[sn-1][3],0);
+  const done=learnAll.reduce((a,sn)=>{let c=0;for(let i=1;i<=SURAHS[sn-1][3];i++)if(checkedAyahs[`${sn}:${i}`])c++;return a+c;},0);
+  const pct=total>0?Math.round(done/total*100):0;
+  let html=`<div class="learn-view"><div class="lv-top"><h2>Mémorisation — Juz' 26 à 30</h2><p>Cochez chaque verset appris. Progression sauvegardée automatiquement.</p><div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:${pct}%"></div></div><p class="prog-txt" id="progTxt">${done} / ${total} versets (${pct}%)</p></div>`;
+  for(const[jnum,snums]of Object.entries(LEARN_SURAHS_BY_JUZ)){
+    const jdone=snums.reduce((a,sn)=>{let c=0;for(let i=1;i<=SURAHS[sn-1][3];i++)if(checkedAyahs[`${sn}:${i}`])c++;return a+c;},0);
+    const jtotal=snums.reduce((a,sn)=>a+SURAHS[sn-1][3],0);
+    const isOpen=!!openJuz[jnum];
+    html+=`<div class="juz-block"><div class="juz-hdr" onclick="toggleJuz(${jnum})"><span class="juz-hdr-name">Juz' ${jnum}${jnum=='30'?' — Juz Amma':''}</span><span class="juz-hdr-prog" id="juz-prog-${jnum}">${jdone}/${jtotal}</span></div><div class="juz-body ${isOpen?'open':''}" id="juz-body-${jnum}">`;
+    for(const sn of snums){
+      const s=SURAHS[sn-1];
+      const sd=Array.from({length:s[3]},(_,i)=>checkedAyahs[`${sn}:${i+1}`]?1:0).reduce((a,b)=>a+b,0);
+      const isOS=!!openLearnSurah[sn];
+      html+=`<div class="ls-group"><div class="ls-head" onclick="toggleLS(${sn})"><span class="ls-head-name">${sn}. ${s[1]} <span class="ls-head-ar">${s[2]}</span></span><span class="ls-head-cnt" id="ls-cnt-${sn}">${sd}/${s[3]}</span></div><div class="ls-ayahs ${isOS?'open':''}" id="ls-ayahs-${sn}"><div id="ls-rows-${sn}"></div></div></div>`;
+    }
+    html+=`</div></div>`;
+  }
+  html+=`</div>`;
+  document.getElementById('mainContent').innerHTML=html;
+  for(const sn of Object.keys(openLearnSurah)){if(openLearnSurah[sn])loadLS(parseInt(sn));}
+}
+
+function toggleJuz(n){openJuz[n]=!openJuz[n];const b=document.getElementById(`juz-body-${n}`);if(b)b.classList.toggle('open',!!openJuz[n]);}
+
+async function toggleLS(sn){
+  openLearnSurah[sn]=!openLearnSurah[sn];
+  const c=document.getElementById(`ls-ayahs-${sn}`);
+  if(!c)return;
+  c.classList.toggle('open',!!openLearnSurah[sn]);
+  if(openLearnSurah[sn]){const rows=document.getElementById(`ls-rows-${sn}`);if(rows&&!rows.innerHTML)loadLS(sn);}
+}
+
+async function loadLS(sn){
+  const rows=document.getElementById(`ls-rows-${sn}`);if(!rows)return;
+  rows.innerHTML=`<div class="loading-box" style="padding:1rem"><div class="spin"></div></div>`;
+  try{
+    const res=await fetch(`${API}/verses/by_chapter/${sn}?translations=${TRANS_ID}&per_page=300&fields=text_uthmani`);
+    const data=await res.json();
+    let html='';
+    (data.verses||[]).forEach((v,i)=>{
+      const key=`${sn}:${i+1}`,ch=!!checkedAyahs[key];
+      const trans=(v.translations?.[0]?.text||'').replace(/<[^>]+>/g,'');
+      html+=`<div class="ac-row ${ch?'done':''}" id="row-${key}"><input type="checkbox" id="cb-${key}" ${ch?'checked':''} onchange="toggleCheck('${key}')"><label for="cb-${key}"><span class="ac-num">Verset ${i+1}</span><span class="ac-ar">${v.text_uthmani||''}</span>${trans?`<span class="ac-tr">${trans}</span>`:''}</label></div>`;
+    });
+    rows.innerHTML=html;
+  }catch(e){rows.innerHTML=`<p style="color:#dc3545;padding:1rem;font-size:0.8rem">Erreur</p>`;}
+}
+
+function toggleCheck(key){
+  checkedAyahs[key]=!checkedAyahs[key];
+  localStorage.setItem('tarteel_v2',JSON.stringify(checkedAyahs));
+  const row=document.getElementById(`row-${key}`);if(row)row.classList.toggle('done',!!checkedAyahs[key]);
+  const sn=parseInt(key.split(':')[0]);
+  const s=SURAHS[sn-1];
+  const sd=Array.from({length:s[3]},(_,i)=>checkedAyahs[`${sn}:${i+1}`]?1:0).reduce((a,b)=>a+b,0);
+  const cnt=document.getElementById(`ls-cnt-${sn}`);if(cnt)cnt.textContent=`${sd}/${s[3]}`;
+  // update juz progress
+  for(const[jn,snums]of Object.entries(LEARN_SURAHS_BY_JUZ)){
+    if(snums.includes(sn)){
+      const jd=snums.reduce((a,n)=>{let c=0;for(let i=1;i<=SURAHS[n-1][3];i++)if(checkedAyahs[`${n}:${i}`])c++;return a+c;},0);
+      const jt=snums.reduce((a,n)=>a+SURAHS[n-1][3],0);
+      const jp=document.getElementById(`juz-prog-${jn}`);if(jp)jp.textContent=`${jd}/${jt}`;
+    }
+  }
+  // global progress
+  const learnAll=Object.values(LEARN_SURAHS_BY_JUZ).flat();
+  const total=learnAll.reduce((a,n)=>a+SURAHS[n-1][3],0);
+  const done=learnAll.reduce((a,n)=>{let c=0;for(let i=1;i<=SURAHS[n-1][3];i++)if(checkedAyahs[`${n}:${i}`])c++;return a+c;},0);
+  const pct=Math.round(done/total*100);
+  const pf=document.getElementById('progFill');if(pf)pf.style.width=pct+'%';
+  const pt=document.getElementById('progTxt');if(pt)pt.textContent=`${done} / ${total} versets (${pct}%)`;
+}
+
+// ═══ SIRA ═══
+function renderSiraView(chapId=null){
+  currentSiraChap=chapId;
+  renderSiraSidebar();
+  setHeader('السيرة النبوية','Vie du Prophète Muhammad ﷺ','');
+  if(!chapId){
+    let html=`<div class="sira-view"><div class="sira-intro"><span class="si-ar">السيرة النبوية</span><h2>La Sira du Prophète Muhammad ﷺ</h2><p>Biographie complète — de la naissance au décès</p></div><div class="sira-chapters">`;
+    html+=SIRA_CHAPTERS.map(c=>`<div class="sira-ch ${currentSiraChap===c.id?'active':''}" onclick="loadSiraChap(${c.id})"><div class="sch-num">${c.icon}</div><div class="sch-body"><h4>${c.num}. ${c.title}</h4><p>${c.period}</p></div></div>`).join('');
+    html+=`</div></div>`;
+    document.getElementById('mainContent').innerHTML=html;
+  }
+}
+
+function loadSiraChap(id){
+  currentSiraChap=id;
+  renderSiraSidebar();
+  const c=SIRA_CHAPTERS.find(x=>x.id===id);
+  if(!c)return;
+  setHeader(c.title,c.period,`<button class="hdr-btn" onclick="renderSiraView()">← Chapitres</button>`);
+  document.getElementById('mainContent').innerHTML=`<div class="sira-view">
+    <div class="sira-detail">
+      <h3>${c.icon} ${c.title}</h3>
+      <p class="sd-period">${c.period} — ${c.summary}</p>
+      <div class="sd-content">${c.content}</div>
+    </div></div>`;
+  document.getElementById('mainContent').scrollTop=0;
+}
+
+// ═══ MERES ═══
+function renderMeresView(mereN=null){
+  currentMere=mereN;
+  renderMeresSidebar();
+  setHeader('أمهات المؤمنين','Mères des croyants — Épouses du Prophète ﷺ','');
+  if(!mereN){
+    let html=`<div class="meres-grid-view"><div class="mg-intro"><span class="mi-ar">أمهات المؤمنين</span><h2>Les Mères des croyants</h2><p>Biographies des 11 épouses du Prophète ﷺ</p></div><div class="meres-cards">`;
+    html+=MERES.map(m=>`<div class="mere-card" onclick="loadMere(${m.n})"><div class="mc-num">${m.n}</div><span class="mc-ar">${m.ar.split(' ')[0]}</span><div class="mc-name">${m.fr.split(' ').slice(0,2).join(' ')}</div><div class="mc-ep">${m.ep}</div></div>`).join('');
+    html+=`</div></div>`;
+    document.getElementById('mainContent').innerHTML=html;
+  }
+}
+
+function loadMere(n){
+  currentMere=n;
+  renderMeresSidebar();
+  const m=MERES.find(x=>x.n===n);
+  if(!m)return;
+  setHeader(m.fr,m.ep,`<button class="hdr-btn" onclick="renderMeresView()">← Toutes</button>`);
+  let sectionsHtml=m.sections.map(sec=>`<h4>${sec.title}</h4><p>${sec.text}</p>`).join('');
+  document.getElementById('mainContent').innerHTML=`<div class="meres-grid-view">
+    <div class="mere-detail">
+      <div class="mere-detail-hdr">
+        <div class="md-avatar"><span>${m.init}</span></div>
+        <div class="md-titles">
+          <h3>${m.fr}</h3>
+          <span class="md-ar">${m.ar}</span>
+          <span class="md-ep">${m.ep}</span>
+        </div>
+      </div>
+      <div class="mere-detail-body">
+        <div class="info-grid">
+          <div class="info-cell"><span class="ic-label">Naissance</span><span class="ic-val">${m.birth}</span></div>
+          <div class="info-cell"><span class="ic-label">Décès</span><span class="ic-val">${m.death}</span></div>
+          <div class="info-cell"><span class="ic-label">Tribu</span><span class="ic-val">${m.tribe}</span></div>
+          <div class="info-cell"><span class="ic-label">Statut</span><span class="ic-val">Mère des croyants</span></div>
+        </div>
+        <div class="hadith-box">« ${m.resume} »</div>
+        ${sectionsHtml}
+      </div>
+    </div></div>`;
+  document.getElementById('mainContent').scrollTop=0;
+}
+
+// ═══ UTILS ═══
+function setHeader(title,meta,rightHtml){
+  document.getElementById('mhTitle').textContent=title;
+  document.getElementById('mhMeta').textContent=meta;
+  document.getElementById('mhRight').innerHTML=rightHtml||'';
+}
+
+// ═══ INIT ═══
+renderSurahSidebar();
+showSurahGrid();
+</script>
+</body>
+</html>
